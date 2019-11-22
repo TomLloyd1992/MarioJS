@@ -5,6 +5,10 @@ import {loadLevel} from "./loaders.js";  //Loader Json
 import {createMario} from "./entitys.js";   //creating mario
 import {loadBackGroundSprites} from "./sprites.js"  
 import {createBackgroundLayer, createSpriteLayer} from "./layers.js"
+import Keyboard from "./KeyboardState.js" //keyboard handler
+
+
+
 
 //Creating Canvas
 const canvas = document.getElementById("screen");
@@ -27,6 +31,19 @@ Promise.all([
     
     //Gravity
     const gravity = 30;
+
+    const SPACE = 32;
+    const input = new Keyboard();
+    input.addMapping(SPACE, keyState => {
+        if(keyState){
+            mario.jump.start();
+        }
+        else{
+            mario.jump.cancel();
+        }
+    });
+    input.listenTo(window);
+
     
     //Layer Sprites
     const spriteLayer = createSpriteLayer(mario);
