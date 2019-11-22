@@ -1,32 +1,70 @@
-import SpriteSheet from "./SpriteSheet.js";
-import {loadImage, loadLevel} from "./loaders.js";
+import Compositor from "./Compositor.js";  //Compositior for loading the different buffers
+import {loadLevel} from "./loaders.js";  //Loader Json
+import {loadBackGroundSprites, loadMarioSprite} from "./sprites.js"
+import {createBackgroundLayer} from "./layers.js"
 
-function drawBackground(background, context, sprites) {
-    background.ranges.forEach(([x1,x2,y1,y2]) => {
-        for(let x = x1; x< x2; ++x){
-            for(let y = y1; y < y2; ++y)
-            {
-                sprites.drawTile(background.tile, context, x, y);
-            }
-        }
-    });
-}
 
+
+//Creating Canvas
 const canvas = document.getElementById("screen");
 const context = canvas.getContext("2d");
 
-loadImage("/img/tiles.png")
-.then(image => {
-    const sprites = new SpriteSheet(image, 16, 16);
-    sprites.define("ground", 0,0);
-    sprites.define("sky", 3, 23);
+//Creating the sprite Layer
+function createSpriteLayer(sprite,pos){
+    return function drawSpriteLayer(context){
+        //Draw Mario
+        sprite.draw("idle", context, pos.x,pos.y );
+    };
+}
 
-    loadLevel("1-1")
-    .then(level => {
-        level.backgrounds.forEach(backgrounds => {
-        drawBackground(backgrounds, context, sprites);
-        });
-    });
+
+Promise.all([
+    loadMarioSprite(),
+    loadBackGroundSprites(),
+    loadLevel("1-1"),
+])
+.then(([marioSprite, backgroundSprites, level]) => {
+
+    const comp = new Compositor();
+
+    const backgroundLayer = createBackgroundLayer(level.backgrounds, backgroundSprites);
+
+    comp.layers.push(backgroundLayer);
+    
+        //Mario Starting Pos
+        const pos = {
+            x: 64,
+            y: 64,
+        };
+
+        const spriteLayer = createSpriteLayer(marioSprite, pos);
+        comp.layers.push(spriteLayer);
+
+
+        //Update Function
+        function update()
+        {
+            //Drawing the background layer
+            comp.draw(context);
+
+ 
+
+
+            //Increase mario x + y pos every update
+            pos.x += 2;
+            pos.y +=2;
+
+            //Animation update for more accurate fps
+            requestAnimationFrame(update);
+
+        }
+
+        //Call update atleast once
+        update();
+
+
 });
+
+
 
 

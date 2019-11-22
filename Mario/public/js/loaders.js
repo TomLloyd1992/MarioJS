@@ -1,3 +1,4 @@
+//Load image function
 export function loadImage(url) {
     return new Promise(resolve => {
         const image = new Image();
@@ -8,6 +9,7 @@ export function loadImage(url) {
     });
 }
 
+//Loading using Json
 export function loadLevel(name)
 {
     return fetch(`/levels/${name}.json`)
