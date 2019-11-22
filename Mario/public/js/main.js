@@ -1,66 +1,50 @@
 import Compositor from "./Compositor.js";  //Compositior for loading the different buffers
+import Entity from "./entity.js";   //Enities used to create sprites
+import Timer from "./Timer.js"
 import {loadLevel} from "./loaders.js";  //Loader Json
-import {loadBackGroundSprites, loadMarioSprite} from "./sprites.js"
-import {createBackgroundLayer} from "./layers.js"
-
-
+import {createMario} from "./entitys.js";   //creating mario
+import {loadBackGroundSprites} from "./sprites.js"  
+import {createBackgroundLayer, createSpriteLayer} from "./layers.js"
 
 //Creating Canvas
 const canvas = document.getElementById("screen");
 const context = canvas.getContext("2d");
 
-//Creating the sprite Layer
-function createSpriteLayer(sprite,pos){
-    return function drawSpriteLayer(context){
-        //Draw Mario
-        sprite.draw("idle", context, pos.x,pos.y );
-    };
-}
-
-
 Promise.all([
-    loadMarioSprite(),
+    createMario(),
     loadBackGroundSprites(),
     loadLevel("1-1"),
 ])
-.then(([marioSprite, backgroundSprites, level]) => {
+.then(([mario, backgroundSprites, level]) => {
 
     const comp = new Compositor();
-
     const backgroundLayer = createBackgroundLayer(level.backgrounds, backgroundSprites);
+
+    mario.pos.set(64,180);
+    mario.vel.set(200,-600);
 
     comp.layers.push(backgroundLayer);
     
-        //Mario Starting Pos
-        const pos = {
-            x: 64,
-            y: 64,
-        };
+    //Gravity
+    const gravity = 30;
+    
+    //Layer Sprites
+    const spriteLayer = createSpriteLayer(mario);
+    comp.layers.push(spriteLayer);
 
-        const spriteLayer = createSpriteLayer(marioSprite, pos);
-        comp.layers.push(spriteLayer);
+    const timer = new Timer(1/60);
+    
 
+    timer.update = function update(time){
+             //Drawing the background layer
+             comp.draw(context);
+             //Update Mario
+             mario.update(time);
+             //Decrease mario Vel y with gravity
+             mario.vel.y += gravity;
+    }
 
-        //Update Function
-        function update()
-        {
-            //Drawing the background layer
-            comp.draw(context);
-
- 
-
-
-            //Increase mario x + y pos every update
-            pos.x += 2;
-            pos.y +=2;
-
-            //Animation update for more accurate fps
-            requestAnimationFrame(update);
-
-        }
-
-        //Call update atleast once
-        update();
+    timer.start();
 
 
 });

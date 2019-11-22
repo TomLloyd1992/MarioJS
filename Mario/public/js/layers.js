@@ -26,3 +26,10 @@ function drawBackground(background, context, sprites) {
         }
     });
 }
+
+export function createSpriteLayer(entity)
+{
+    return function drawSpriteLayer(context){
+        entity.draw(context);
+    };
+}
